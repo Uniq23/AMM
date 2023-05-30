@@ -8,8 +8,8 @@ const tokens = (n) => {
 const ether = tokens
 
 
-describe('Token', () => {
-  let accounts, deployer, token1, token2
+describe('AMM', () => {
+  let accounts, deployer, token1, token2, amm
 
   beforeEach(async () => {
     accounts = await ethers.getSigners()
@@ -18,6 +18,9 @@ describe('Token', () => {
     const Token = await ethers.getContractFactory('Token')
     token1 = await Token.deploy('Pooh Bear1', 'POO1', '1000000') // 1 Million Tokens
     token2 = await Token.deploy('USD Token', 'USD', '1000000') // 1 Million Tokens
+
+    const AMM = await ethers.getContractFactory('AMM')
+    amm = await AMM.deploy(token1.address, token2.address)
   })
 
   describe('Deployment', () => {
