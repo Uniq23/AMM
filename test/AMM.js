@@ -8,20 +8,48 @@ const tokens = (n) => {
 const ether = tokens
 const shares = ether
 
-
 describe('AMM', () => {
-  let accounts, deployer, token1, token2, amm
+  let accounts,
+      deployer,
+      liquidityProvider,
+      investor1,
+      investor2
+
+  let token1,
+      token2,
+      amm
 
   beforeEach(async () => {
+    // Setup Accounts
     accounts = await ethers.getSigners()
     deployer = accounts[0]
+    liquidityProvider = accounts[1]
+    investor1 = accounts[2]
+    investor2 = accounts[3]
 
+    // Deploy Token
     const Token = await ethers.getContractFactory('Token')
-    token1 = await Token.deploy('Pooh Bear1', 'POO1', '1000000') // 1 Million Tokens
+    token1 = await Token.deploy('Dapp University', 'DAPP', '1000000') // 1 Million Tokens
     token2 = await Token.deploy('USD Token', 'USD', '1000000') // 1 Million Tokens
 
+    // Send tokens to liquidity provider
+    let transaction = await token1.connect(deployer).transfer(liquidityProvider.address, tokens(100000))
+    await transaction.wait()
+
+    transaction = await token2.connect(deployer).transfer(liquidityProvider.address, tokens(100000))
+    await transaction.wait()
+
+    // Send token1 to investor1
+    transaction = await token1.connect(deployer).transfer(investor1.address, tokens(100000))
+    await transaction.wait()
+
+    // Send token2 to investor2
+    transaction = await token2.connect(deployer).transfer(investor2.address, tokens(100000))
+    await transaction.wait()
+
+    // Deploy AMM
     const AMM = await ethers.getContractFactory('AMM')
-    amm = await AMM.deploy(token1.address, token2.address )
+    amm = await AMM.deploy(token1.address, token2.address)
   })
 
   describe('Deployment', () => {
@@ -248,9 +276,6 @@ describe('AMM', () => {
       console.log(`AMM Token1 Balance: ${ethers.utils.formatEther(await amm.token1Balance())} \n`)
       console.log(`AMM Token2 Balance: ${ethers.utils.formatEther(await amm.token2Balance())} \n`)
 
-      //await amm.token1Balance()
-      //await amm.token2Balance()
-
       // Check LP balance before removing tokens
       balance = await token1.balanceOf(liquidityProvider.address)
       console.log(`Liquidity Provider Token1 balance before removing funds: ${ethers.utils.formatEther(balance)} \n`)
@@ -262,11 +287,12 @@ describe('AMM', () => {
       transaction = await amm.connect(liquidityProvider).removeLiquidity(shares(50)) // 50 Shares
       await transaction.wait()
 
+      // Check LP balance after removing funds
       balance = await token1.balanceOf(liquidityProvider.address)
-      console.log(`Liquidity Provider Token1 balance after removing fund: ${ethers.utils.formatUnits(balance)}) \n`)
+      console.log(`Liquidity Provider Token1 balance after removing fund: ${ethers.utils.formatEther(balance)} \n`)
 
       balance = await token2.balanceOf(liquidityProvider.address)
-      console.log(`Liquidity Provider Token2 balance after removing fund: ${ethers.utils.formatUnits(balance)}) \n`)
+      console.log(`Liquidity Provider Token2 balance after removing fund: ${ethers.utils.formatEther(balance)} \n`)
 
       // LP should have 0 shares
       expect(await amm.shares(liquidityProvider.address)).to.equal(0)
