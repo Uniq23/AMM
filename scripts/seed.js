@@ -32,7 +32,7 @@ async function main() {
 
   // Fetch Dapp Token
   const dapp = await ethers.getContractAt('Token', config[chainId].dapp.address)
-  console.log(`Pooh Bear1 Token fetched: ${dapp.address}\n`)
+  console.log(`Dapp Token fetched: ${dapp.address}\n`)
 
   // Fetch USD Token
   const usd = await ethers.getContractAt('Token', config[chainId].usd.address)
