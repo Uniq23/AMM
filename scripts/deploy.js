@@ -10,7 +10,7 @@ async function main() {
   const Token = await hre.ethers.getContractFactory('Token')
 
   // Deploy Token 1
-  let dapp = await Token.deploy('Pooh Bear1', 'POO1', '1000000') // 1 million tokens
+  let dapp = await Token.deploy('Pooh Bear1', 'Poo1', '1000000') // 1 million tokens
   await dapp.deployed()
   console.log(`Dapp Token deployed to: ${dapp.address}\n`)
 
