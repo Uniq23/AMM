@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useDispatch } from 'react-redux'  //06/05/23
 import { Container } from 'react-bootstrap'
 import { ethers } from 'ethers'
 
@@ -12,11 +13,15 @@ import Loading from './Loading';
 // Config: Import your network config here
 // import config from '../config.json';
 
+import { setAccount } from '../store/reducers/provider';       //06/05/23
+
 function App() {
   const [account, setAccount] = useState(null)
   const [balance, setBalance] = useState(0)
 
   const [isLoading, setIsLoading] = useState(true)
+
+  const dispatch = useDispatch()  //06/05/23
 
   const loadBlockchainData = async () => {
     // Initiate provider
@@ -25,7 +30,7 @@ function App() {
     // Fetch accounts
     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
     const account = ethers.utils.getAddress(accounts[0])
-    setAccount(account)
+    dispatch(setAccount(account))    //06/05/23 made changes  added dispatch
 
     // Fetch account balance
     let balance = await provider.getBalance(account)
