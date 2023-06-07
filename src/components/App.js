@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useDispatch } from 'react-redux'  //06/05/23
+import { useDispatch, useSelector } from 'react-redux'
 import { Container } from 'react-bootstrap'
 import { ethers } from 'ethers'
 
@@ -7,35 +7,28 @@ import { ethers } from 'ethers'
 import Navigation from './Navigation';
 import Loading from './Loading';
 
-// ABIs: Import your contract ABIs here
-// import TOKEN_ABI from '../abis/Token.json'
-
-// Config: Import your network config here
-// import config from '../config.json';
-
-import { setAccount } from '../store/reducers/provider';       //06/05/23
+import { loadAccount, loadProvider, loadNetwork } from '../store/interactions';
 
 function App() {
-  const [account, setAccount] = useState(null)
   const [balance, setBalance] = useState(0)
-
   const [isLoading, setIsLoading] = useState(true)
 
-  const dispatch = useDispatch()  //06/05/23
+  const dispatch = useDispatch()
+  const account = useSelector(state => state.provider.account)
 
   const loadBlockchainData = async () => {
-    // Initiate provider
-    const provider = new ethers.providers.Web3Provider(window.ethereum)
+
+    const provider = await loadProvider(dispatch)
+
+    const chainId = await loadNetwork(dispatch)
 
     // Fetch accounts
-    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
-    const account = ethers.utils.getAddress(accounts[0])
-    dispatch(setAccount(account))    //06/05/23 made changes  added dispatch
+    await loadAccount(dispatch)
 
     // Fetch account balance
-    let balance = await provider.getBalance(account)
-    balance = ethers.utils.formatUnits(balance, 18)
-    setBalance(balance)
+    const balance = await provider.getBalance(account)
+    const formattedBalance = ethers.utils.formatUnits(balance, 18)
+    setBalance(formattedBalance)
 
     setIsLoading(false)
   }
@@ -44,9 +37,9 @@ function App() {
     if (isLoading) {
       loadBlockchainData()
     }
-  }, [isLoading]);
+  }, [isLoading])
 
-  return(
+  return (
     <Container>
       <Navigation account={account} />
 
