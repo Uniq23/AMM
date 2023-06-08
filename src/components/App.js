@@ -7,11 +7,12 @@ import { ethers } from 'ethers'
 import Navigation from './Navigation';
 import Loading from './Loading';
 
-import { loadAccount, loadProvider, loadNetwork } from '../store/interactions';
+import { loadAMM, loadAccount, loadBalances, loadProvider, loadNetwork, loadTokens } from '../store/interactions';
 
 function App() {
   const [balance, setBalance] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
+  const [contracts, setContracts] = useState(0)
 
   const dispatch = useDispatch()
   const account = useSelector(state => state.provider.account)
@@ -20,10 +21,16 @@ function App() {
 
     const provider = await loadProvider(dispatch)
 
-    const chainId = await loadNetwork(dispatch)
+    const chainId = await loadNetwork(provider, dispatch)
+
+    const contracts = await setContracts(provider, chainId, dispatch)
 
     // Fetch accounts
     await loadAccount(dispatch)
+
+    //Initiate contracts
+    await loadTokens(provider, chainId, dispatch)
+    await loadAMM(provider, chainId, dispatch)
 
     // Fetch account balance
     const balance = await provider.getBalance(account)
