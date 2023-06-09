@@ -12,7 +12,7 @@ import { loadAMM, loadAccount, loadBalances, loadProvider, loadNetwork, loadToke
 function App() {
   const [balance, setBalance] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
-  const [contracts, setContracts] = useState(0)
+  const [contracts, setContracts] = useState([])
 
   const dispatch = useDispatch()
   const account = useSelector(state => state.provider.account)
@@ -23,11 +23,14 @@ function App() {
 
     const chainId = await loadNetwork(provider, dispatch)
 
-    const contracts = await setContracts(provider, chainId, dispatch)
+    const contracts = await loadTokens(provider, chainId, dispatch)  //6/9/23 2:11am changed from setContracts to loadTokens 
 
-    // Fetch accounts
-    await loadAccount(dispatch)
-
+    // Fetch accounts from meta mask when changed
+    window.ethereum.on('accountsChanged', async () => {
+      await loadAccount(dispatch)
+      await loadBalances(provider, contracts, dispatch); // Dispatch loadBalances here      
+    })
+    
     //Initiate contracts
     await loadTokens(provider, chainId, dispatch)
     await loadAMM(provider, chainId, dispatch)
@@ -41,14 +44,12 @@ function App() {
   }
 
   useEffect(() => {
-    if (isLoading) {
       loadBlockchainData()
-    }
-  }, [isLoading])
+  }, []);
 
   return (
     <Container>
-      <Navigation account={account} />
+      <Navigation/>
 
       <h1 className='my-4 text-center'>React Hardhat Template</h1>
 

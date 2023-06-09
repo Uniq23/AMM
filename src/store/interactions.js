@@ -4,17 +4,18 @@ import {
   setProvider,
   setNetwork,
   setAccount
-} from './reducers/provider'
+} from '../store/reducers/provider';
 
 import {
   setContracts,
   setSymbols,
-  balancesLoaded
-} from './reducers/tokens'
+  balancesLoaded,
+  sharesLoaded
+} from '../store/reducers/tokens';
 
 import {
   setContract,
-} from './reducers/amm'
+} from '../store/reducers/amm';
 
 import TOKEN_ABI from '../abis/Token.json';
 import AMM_ABI from '../abis/AMM.json';
@@ -36,6 +37,7 @@ export const loadNetwork = async (provider, dispatch) => {
 
 export const loadAccount = async (dispatch) => {
   const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
+  console.log(accounts)
   const account = ethers.utils.getAddress(accounts[0])
   dispatch(setAccount(account))
 
@@ -44,16 +46,18 @@ export const loadAccount = async (dispatch) => {
 
 // LOAD CONTRACTS
 export const loadTokens = async (provider, chainId, dispatch) => {
+  console.log(config[chainId].dapp.address)
   const dapp = new ethers.Contract(config[chainId].dapp.address, TOKEN_ABI, provider)
   const usd = new ethers.Contract(config[chainId].usd.address, TOKEN_ABI, provider)
+
 
   dispatch(setContracts([dapp, usd]))
   dispatch(setSymbols([await dapp.symbol(), await usd.symbol()]))
 }
 
 export const loadAMM = async (provider, chainId, dispatch) => {
+  console.log(config[chainId].amm.address)
   const amm = new ethers.Contract(config[chainId].amm.address, AMM_ABI, provider)
-
   dispatch(setContract(amm))
 
   return amm
@@ -70,5 +74,5 @@ export const loadBalances = async (amm, tokens, account, dispatch) => {
   ]))
 
   const shares = await amm.shares(account)
-  dispatch(sharesLoaded(ethers.utils.formatUnits(shares.toString(), 'ether')))
+  //dispatch(sharesLoaded(ethers.utils.formatUnits(shares.toString(), 'ether')))   //Todo not sure about this code 6/8/23
 }
